@@ -27,16 +27,16 @@ import urequests
 led = machine.Pin(25, machine.Pin.OUT)  
 sensor_pin = machine.ADC(26)  
 
-window_size = 1  # Größe des gleitenden Mittelwerts-Fensters
-sensor_values = [0] * window_size  # Eine Liste, um die letzten Werte zu speichern
 index = 0  # Index, um die Position des aktuellen Werts im Array zu verfolgen
 total_sum = 0  # Summe aller bisherigen Werte
 total_count = 0  # Anzahl der bisherigen Werte
+window_size = 10  # Größe des gleitenden Mittelwerts-Fensters
+sensor_values = [0] * window_size  # Eine Liste, um die letzten Werte zu speichern
 
 
 UREF = 3.3
-NULLPUNKT = 2.50826
-VpA = 0.1379
+NULLPUNKT = 2.5371
+VpA = 0.1331
 
 # def send_to_node_red(data):
 #     node_red_url = "http://your-node-red-ip:your-node-red-port/your-endpoint"
@@ -60,14 +60,10 @@ VpA = 0.1379
 
     # print('Web server started on {}:{}'.format(addr, port))
 
+
 while True:
         led.on()
         sensor_value = sensor_pin.read_u16()  # Lese den analogen Wert
-        window_size = 1  # Größe des gleitenden Mittelwerts-Fensters
-        sensor_values = [0] * window_size  # Eine Liste, um die letzten Werte zu speichern
-        index = 0  # Index, um die Position des aktuellen Werts im Array zu verfolgen
-        # total_sum = 0  # Summe aller bisherigen Werte
-        # total_count = 0  # Anzahl der bisherigen Werte
         total_sum += sensor_value  # Addiere den aktuellen Wert zur Gesamtsumme
         total_count += 1  # Inkrementiere die Anzahl der bisherigen Werte
 
@@ -79,9 +75,9 @@ while True:
         overall_average = total_sum / total_count
 
 
-        print("Gleitender Mittelwert der letzten 10 Werte:", (moving_average/65535)*UREF)
+        # print("Gleitender Mittelwert der letzten 10 Werte:", (moving_average/65535)*UREF)
         print("Gleitender Amperewert der letzten 10 Werte:", (((moving_average/65535)*UREF) - NULLPUNKT)/VpA)
-        print("Gesamtmittelwert aller bisherigen Werte:", (overall_average/65535)*UREF)
+        # print("Gesamtmittelwert aller bisherigen Werte:", (overall_average/65535)*UREF)
         print("Gesamtmittelwert Amperewert:", (((overall_average/65535)*UREF) - NULLPUNKT)/VpA)
 
 
