@@ -7,21 +7,21 @@ import math
 import ujson
 import urequests 
 
-# sta_if = network.WLAN(network.STA_IF)
-# sta_if.active(True)
-# # sta_if.connect("WLAN-197399", "32734056271867621744")
-# sta_if.connect("stefan Fritzbox", "32103449752892365973")
+sta_if = network.WLAN(network.STA_IF)
+sta_if.active(True)
+# sta_if.connect("WLAN-197399", "32734056271867621744")
+sta_if.connect("stefan Fritzbox", "32103449752892365973")
 
-# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# s.bind(('', 8081))
-# s.listen(5)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('', 8081))
+s.listen(5)
 
-# sta_if = network.WLAN(network.STA_IF)
-# print(sta_if.ifconfig()[0])
-# print("WLAN-Status:", sta_if.isconnected())
+sta_if = network.WLAN(network.STA_IF)
+print(sta_if.ifconfig()[0])
+print("WLAN-Status:", sta_if.isconnected())
 
-# wlan = network.WLAN(network.STA_IF)
-# wlan.active(True)
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
 
 
 led = machine.Pin(25, machine.Pin.OUT)  
@@ -75,9 +75,9 @@ while True:
         overall_average = total_sum / total_count
 
 
-        # print("Gleitender Mittelwert der letzten 10 Werte:", (moving_average/65535)*UREF)
+        print("Gleitender Mittelwert der letzten 10 Werte:", (moving_average/65535)*UREF)
         print("Gleitender Amperewert der letzten 10 Werte:", (((moving_average/65535)*UREF) - NULLPUNKT)/VpA)
-        # print("Gesamtmittelwert aller bisherigen Werte:", (overall_average/65535)*UREF)
+        print("Gesamtmittelwert aller bisherigen Werte:", (overall_average/65535)*UREF)
         print("Gesamtmittelwert Amperewert:", (((overall_average/65535)*UREF) - NULLPUNKT)/VpA)
 
 
@@ -97,7 +97,7 @@ while True:
         # </head>
         # <body style="background-color:white; background-image:linear-gradient(to bottom, white, yellow); text-align:center; vertical-align:middle; line-height:100vh; margin:0; font-family:'Comic Sans MS',cursive;">
         #     <div style="display:flex; align-items:center; justify-content:center; font-size:5vw; color:black;">
-        #         Die aktuelle Ladeleistung betraegt {:.2f} Watt
+                # Die aktuelle Ladeleistung betraegt {:.2f} Watt
         #     </div>
         # </body>
         # </html>""".format((overall_average/65535)*UREF)
