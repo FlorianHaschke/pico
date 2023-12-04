@@ -18,7 +18,7 @@ NULLPUNKT = 2.820
 VpA = 0.185
 def start_server():
     addr = wlan.ifconfig()[0]
-    port = 82
+    port = 83
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((addr, port))
     s.listen(5)
