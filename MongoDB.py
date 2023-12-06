@@ -195,10 +195,10 @@ def main():
         # print(moving_average2)
         chargingPower = ((((moving_average/65535)* UREF) - NULLPUNKT)/VpA)*(-Ucharge)
         chargingPower2 = ((((moving_average2/65535)* UREF) - NULLPUNKT)/VpA2)*(Ucharge2)
-        print("GMA1: ",((((moving_average/65535)* UREF) - NULLPUNKT)/VpA))
-        print("GMA2 :", (((moving_average2/65535)*UREF) - NULLPUNKT)/VpA2)
-        print(chargingPower)
-        print(chargingPower2)
+        # print("GMA1: ",((((moving_average/65535)* UREF) - NULLPUNKT)/VpA))
+        # print("GMA2 :", (((moving_average2/65535)*UREF) - NULLPUNKT)/VpA2)
+        # print(chargingPower)
+        # print(chargingPower2)
         rtc_time_tuple = RTC().datetime()
         year = rtc_time_tuple[0]
         month = rtc_time_tuple[1]
@@ -213,10 +213,12 @@ def main():
         sensor1 = "ACS712-5A"
         sensor2 = "ACS712-20A"
         # print(formatted_time)              
-        insertOne(sensor1, year, month, day, hour, minute, second, chargingPower)
-        insertOne(sensor2, year, month, day, hour, minute, second, chargingPower2)
+        # insertOne("ACS712-5A", 2023, 12, 4, 18, 57, 50, 0)
+
+        # insertOne(sensor1, year, month, day, hour, minute, second, chargingPower)
+        # insertOne(sensor2, year, month, day, hour, minute, second, chargingPower2)
         # deleteMany({"day": 4})
-        # find({"day": 27})
+        find({"day": 6})
 
 
 main()
