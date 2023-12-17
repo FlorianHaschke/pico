@@ -4,12 +4,20 @@ import urequests as requests
 import network
 import time
 import ntptime
-import utime
+from time import sleep, sleep_us, ticks_us
 import credentials
+from machine import Pin
+
 
 sensor_pin = machine.ADC(26)  
 sensor_pin2 = machine.ADC(27)  
 ntptime.settime()
+
+# Initialisierung GPIO-Ausgang für Trigger-Signal
+trigger = Pin(2, Pin.OUT)
+
+# Initialisierung GPIO-Eingang für Echo-Signal
+echo = Pin(3, Pin.IN)
 
 UREF = 3.3 
 # NULLPUNKT = 2.5371
@@ -78,7 +86,7 @@ def find(filter_dictionary):
         print(e)
         
 
-def insertOne(sensor, year, month, day, hour, minute, second, pinvalue):
+def insertOneCurrent(sensor, year, month, day, hour, minute, second, pinvalue):
     try:
         headers = { "api-key": API_KEY }
         documentToAdd = {"Sensor": sensor,
@@ -89,6 +97,35 @@ def insertOne(sensor, year, month, day, hour, minute, second, pinvalue):
                          "minute": minute,
                          "second": second,
                          "Chargingpower": pinvalue}
+        insertPayload = {
+            "dataSource": "Cluster0",
+            "database": "MSYPicoSensorData",
+            "collection": "ACS7125A",
+            "document": documentToAdd,
+        }
+        response = requests.post(URL + "insertOne", headers=headers, json=insertPayload)
+        print(response)
+        print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
+        if response.status_code >= 200 and response.status_code < 300:
+            print("Success Response")
+        else:
+            print(response.status_code)
+            print("Error")
+        response.close()
+    except Exception as e:
+        print(e)
+
+def insertOneUsage(sensor, year, month, day, hour, minute, second, pinvalue):
+    try:
+        headers = { "api-key": API_KEY }
+        documentToAdd = {"Sensor": sensor,
+                         "year": year,
+                         "month": month,
+                         "day": day,
+                         "hour": hour,
+                         "minute": minute,
+                         "second": second,
+                         "inUse": pinvalue}
         insertPayload = {
             "dataSource": "Cluster0",
             "database": "MSYPicoSensorData",
@@ -191,12 +228,43 @@ def main():
         moving_average2 = sum(sensor_values2) / window_size
 
 
+        # Abstand messen
+        trigger.low()
+        sleep_us(2)
+        trigger.high()
+        sleep_us(5)
+        trigger.low()
+        # Zeiten messen
+        while echo.value() == 0:
+            signaloff = ticks_us()
+        while echo.value() == 1:         
+            signalon = ticks_us()
+        # Vergangene Zeit ermitteln
+        timepassed = signalon - signaloff # type: ignore
+        # Abstand/Entfernung ermitteln
+        # Entfernung über die Schallgeschwindigkeit (34320 cm/s bei 20 °C) berechnen
+        # Durch 2 teilen, wegen Hin- und Rückweg
+        abstand = timepassed * 0.03432 / 2
+
+        # Setze die Variable seatSensor auf 1, falls der Abstand größer als 30 ist, sonst auf 0
+        usage = 1 if abstand < 30 else 0
+
+
         # print(moving_average)
         # print(moving_average2)
         chargingPower = ((((moving_average/65535)* UREF) - NULLPUNKT)/VpA)*(-Ucharge)
         chargingPower2 = ((((moving_average2/65535)* UREF) - NULLPUNKT)/VpA2)*(Ucharge2)
-        # print("GMA1: ",((((moving_average/65535)* UREF) - NULLPUNKT)/VpA))
-        # print("GMA2 :", (((moving_average2/65535)*UREF) - NULLPUNKT)/VpA2)
+        print("GMA1: ",((((moving_average/65535)* UREF) - NULLPUNKT)/VpA))
+        print("GMA2 :", (((moving_average2/65535)*UREF) - NULLPUNKT)/VpA2)
+        print("GMV1: ",((((moving_average/65535)* UREF) )))
+        print("GMV2 :", (((moving_average2/65535)*UREF) ))
+        print(abstand)
+        print(usage)
+
+
+
+
+
         # print(chargingPower)
         # print(chargingPower2)
         rtc_time_tuple = RTC().datetime()
@@ -210,15 +278,19 @@ def main():
             rtc_time_tuple[0], rtc_time_tuple[1], rtc_time_tuple[2], 
             rtc_time_tuple[4]+1, rtc_time_tuple[5], rtc_time_tuple[6]
         )
-        sensor1 = "ACS712-5A"
-        sensor2 = "ACS712-20A"
+        currentSensor5a = "ACS712-5A"
+        currentSensor20a = "ACS712-20A"
+        seatSensor = "HC-SR04"
         # print(formatted_time)              
-        # insertOne("ACS712-5A", 2023, 12, 4, 18, 57, 50, 0)
+        # insertOneCurrent("ACS712-5A", 2023, 12, 13, 10, 57, 50, 0)
+        # insertOneCurrent("ACS712-20A", 2023, 12, 13, 10, 57, 50, 0)
 
-        # insertOne(sensor1, year, month, day, hour, minute, second, chargingPower)
-        # insertOne(sensor2, year, month, day, hour, minute, second, chargingPower2)
-        # deleteMany({"day": 4})
-        find({"day": 6})
+        # insertOneCurrent(currentSensor5a, year, month, day, hour, minute, second, chargingPower)
+        # insertOneCurrent(currentSensor20a, year, month, day, hour, minute, second, chargingPower2)
+        insertOneUsage(seatSensor, year, month, day, hour, minute, second, usage)
+        # deleteMany({"day": 13})
+        # find({"day": 6})
+
 
 
 main()
