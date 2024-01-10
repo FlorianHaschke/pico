@@ -86,17 +86,46 @@ def find(filter_dictionary):
         print(e)
         
 
-def insertOneCurrent(sensor, year, month, day, hour, minute, second, pinvalue):
+def insertOneCurrent(sensor1, sensor2, sensor3, year, month, day, hour, minute, second, chargingPower, chargingPower2, inUse):
     try:
         headers = { "api-key": API_KEY }
-        documentToAdd = {"Sensor": sensor,
+        documentToAdd = {"Sensor": sensor1,
                          "year": year,
                          "month": month,
                          "day": day,
                          "hour": hour,
                          "minute": minute,
                          "second": second,
-                         "Chargingpower": pinvalue}
+                         "Chargingpower": chargingPower}
+        insertPayload = {
+            "dataSource": "Cluster0",
+            "database": "MSYPicoSensorData",
+            "collection": "ACS7125A",
+            "document": documentToAdd,
+        }
+        response = requests.post(URL + "insertOne", headers=headers, json=insertPayload)
+        print(response)
+        print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
+        if response.status_code >= 200 and response.status_code < 300:
+            print("Success Response")
+        else:
+            print(response.status_code)
+            print("Error")
+        response.close()
+
+    except Exception as e:
+        print(e)
+
+    try:
+        headers = { "api-key": API_KEY }
+        documentToAdd = {"Sensor": sensor2,
+                         "year": year,
+                         "month": month,
+                         "day": day,
+                         "hour": hour,
+                         "minute": minute,
+                         "second": second,
+                         "Chargingpower": chargingPower2}
         insertPayload = {
             "dataSource": "Cluster0",
             "database": "MSYPicoSensorData",
@@ -114,6 +143,39 @@ def insertOneCurrent(sensor, year, month, day, hour, minute, second, pinvalue):
         response.close()
     except Exception as e:
         print(e)
+
+    try:
+        headers = { "api-key": API_KEY }
+        documentToAdd = {"Sensor": sensor3,
+                         "year": year,
+                         "month": month,
+                         "day": day,
+                         "hour": hour,
+                         "minute": minute,
+                         "second": second,
+                         "inUse": inUse}
+        insertPayload = {
+            "dataSource": "Cluster0",
+            "database": "MSYPicoSensorData",
+            "collection": "ACS7125A",
+            "document": documentToAdd,
+        }
+        response = requests.post(URL + "insertOne", headers=headers, json=insertPayload)
+        print(response)
+        print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
+        if response.status_code >= 200 and response.status_code < 300:
+            print("Success Response")
+        else:
+            print(response.status_code)
+            print("Error")
+        response.close()
+    except Exception as e:
+        print(e) 
+    
+    sleep(10)
+
+    
+    
 
 def insertOneUsage(sensor, year, month, day, hour, minute, second, pinvalue):
     try:
@@ -261,12 +323,6 @@ def main():
         print(abstand)
         print(usage)
 
-
-
-
-
-        # print(chargingPower)
-        # print(chargingPower2)
         rtc_time_tuple = RTC().datetime()
         year = rtc_time_tuple[0]
         month = rtc_time_tuple[1]
@@ -281,13 +337,11 @@ def main():
         currentSensor5a = "ACS712-5A"
         currentSensor20a = "ACS712-20A"
         seatSensor = "HC-SR04"
-        # print(formatted_time)              
-        # insertOneCurrent("ACS712-5A", 2023, 12, 13, 10, 57, 50, 0)
         # insertOneCurrent("ACS712-20A", 2023, 12, 13, 10, 57, 50, 0)
 
-        # insertOneCurrent(currentSensor5a, year, month, day, hour, minute, second, chargingPower)
+        insertOneCurrent(currentSensor5a, currentSensor20a, seatSensor, year, month, day, hour, minute, second, chargingPower,chargingPower2,usage)
         # insertOneCurrent(currentSensor20a, year, month, day, hour, minute, second, chargingPower2)
-        insertOneUsage(seatSensor, year, month, day, hour, minute, second, usage)
+        # insertOneUsage(seatSensor, year, month, day, hour, minute, second, usage)
         # deleteMany({"day": 13})
         # find({"day": 6})
 
