@@ -11,7 +11,7 @@ from machine import Pin
 
 sensor_pin = machine.ADC(26)  
 sensor_pin2 = machine.ADC(27)  
-ntptime.settime()
+
 
 # Initialisierung GPIO-Ausgang für Trigger-Signal
 trigger = Pin(2, Pin.OUT)
@@ -20,12 +20,12 @@ trigger = Pin(2, Pin.OUT)
 echo = Pin(3, Pin.IN)
 
 UREF = 3.3 
-# NULLPUNKT = 2.5371
 NULLPUNKT = 2.5253
+# Volt per Ampere - Der Sensor hat eine hinterlegte Umrechnung der Voltmessung in einen Amperewert der hier gestzt wird
 VpA = 0.1331
 VpA2 = 0.1
-Ucharge = 5
-Ucharge2 = 20
+U_Consumption = 24
+U_Production = 12
 
 
 URL = "https://eu-central-1.aws.data.mongodb-api.com/app/data-lwaix/endpoint/data/v1/action/"
@@ -43,27 +43,8 @@ def connect_to_wifi(ssid, psk):
         raise Exception("Wifi not available")
     print("Connected to WiFi")
 
-
-# def findOne(filter_dictionary):
-    # try:
-    #     headers = { "api-key": API_KEY }
-    #     searchPayload = {
-    #         "dataSource": "Cluster0",
-    #         "database": "BME280",
-    #         "collection": "Readings",
-    #         "filter": filter_dictionary,
-    #     }
-    #     response = requests.post(URL + "findOne", headers=headers, json=searchPayload)
-    #     print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
-    #     if response.status_code >= 200 and response.status_code < 300:
-    #         print("Success Response")
-    #     else:
-    #         print(response.status_code)
-    #         print("Error")
-    #     response.close()
-    # except Exception as e:
-    #     print(e)
-        
+connect_to_wifi(credentials.INTERNET_NAME, credentials.INTERNET_PASSWORD)
+ntptime.settime()    
         
 def find(filter_dictionary):
     try:
@@ -85,8 +66,7 @@ def find(filter_dictionary):
     except Exception as e:
         print(e)
         
-
-def insertOneCurrent(sensor1, sensor2, sensor3, year, month, day, hour, minute, second, chargingPower, chargingPower2, inUse):
+def insertData(sensor1, sensor2, sensor3, year, month, day, hour, minute, second, chargingPower, chargingPower2, inUse):
     try:
         headers = { "api-key": API_KEY }
         documentToAdd = {"Sensor": sensor1,
@@ -172,10 +152,7 @@ def insertOneCurrent(sensor1, sensor2, sensor3, year, month, day, hour, minute, 
     except Exception as e:
         print(e) 
     
-    sleep(10)
-
-    
-    
+    sleep(10)  
 
 def insertOneUsage(sensor, year, month, day, hour, minute, second, pinvalue):
     try:
@@ -205,52 +182,7 @@ def insertOneUsage(sensor, year, month, day, hour, minute, second, pinvalue):
         response.close()
     except Exception as e:
         print(e)
-        
-        
-# def insertMany(document_list):
-    # try:
-    #     headers = { "api-key": API_KEY }
-    #     insertPayload = {
-    #         "dataSource": "Cluster0",
-    #         "database": "BME280",
-    #         "collection": "Readings",
-    #         "documents": document_list,
-    #     }
-    #     response = requests.post(URL + "insertMany", headers=headers, json=insertPayload)
-    #     print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
-    #     if response.status_code >= 200 and response.status_code < 300:
-    #         print("Success Response")
-    #     else:
-    #         print(response.status_code)
-    #         print("Error")
-    #     response.close()
-    # except Exception as e:
-    #     print(e)
-        
-        
-# def updateOne(filter_dictionary, update_dict):
-    # try:
-    #     headers = { "api-key": API_KEY }
-    #     update = {"set": update_dict}
-    #     searchPayload = {
-    #         "dataSource": "Cluster0",
-    #         "database": "BME280",
-    #         "collection": "Readings",
-    #         "filter": filter_dictionary,
-    #         "update": update_dict,
-    #     }
-    #     response = requests.post(URL + "updateOne", headers=headers, json=searchPayload)
-    #     print("Response: (" + str(response.status_code) + "), msg = " + str(response.text))
-    #     if response.status_code >= 200 and response.status_code < 300:
-    #         print("Success Response")
-    #     else:
-    #         print(response.status_code)
-    #         print("Error")
-    #     response.close()
-    # except Exception as e:
-    #     print(e)
-        
-        
+               
 def deleteMany(filter_dictionary):
     try:
         headers = { "api-key": API_KEY }
@@ -311,11 +243,8 @@ def main():
         # Setze die Variable seatSensor auf 1, falls der Abstand größer als 30 ist, sonst auf 0
         usage = 1 if abstand < 30 else 0
 
-
-        # print(moving_average)
-        # print(moving_average2)
-        chargingPower = ((((moving_average/65535)* UREF) - NULLPUNKT)/VpA)*(-Ucharge)
-        chargingPower2 = ((((moving_average2/65535)* UREF) - NULLPUNKT)/VpA2)*(Ucharge2)
+        chargingPower = ((((moving_average/65535)* UREF) - NULLPUNKT)/VpA)*(-U_Consumption)
+        chargingPower2 = ((((moving_average2/65535)* UREF) - NULLPUNKT)/VpA2)*(U_Production)
         print("GMA1: ",((((moving_average/65535)* UREF) - NULLPUNKT)/VpA))
         print("GMA2 :", (((moving_average2/65535)*UREF) - NULLPUNKT)/VpA2)
         print("GMV1: ",((((moving_average/65535)* UREF) )))
@@ -339,7 +268,7 @@ def main():
         seatSensor = "HC-SR04"
         # insertOneCurrent("ACS712-20A", 2023, 12, 13, 10, 57, 50, 0)
 
-        insertOneCurrent(currentSensor5a, currentSensor20a, seatSensor, year, month, day, hour, minute, second, chargingPower,chargingPower2,usage)
+        insertData(currentSensor5a, currentSensor20a, seatSensor, year, month, day, hour, minute, second, chargingPower,chargingPower2,usage)
         # insertOneCurrent(currentSensor20a, year, month, day, hour, minute, second, chargingPower2)
         # insertOneUsage(seatSensor, year, month, day, hour, minute, second, usage)
         # deleteMany({"day": 13})
